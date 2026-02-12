@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominos Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="dominos-container" style="display: none;">
+        <div class="game-header">
+            <h1>🎲 DOMINOS 🎲</h1>
+            <div class="header-controls">
+                <span class="control-hint">Drag tiles to drop zones • Right-click to rotate</span>
+                <button id="close-btn" class="btn-close">✕ Leave</button>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <!-- Players Section -->
+            <div class="players-section">
+                <h3>👥 Players</h3>
+                <div id="players-list"></div>
+                <button id="ready-btn" class="btn btn-ready">✓ Ready</button>
+            </div>
+            
+            <!-- Main Game Board -->
+            <div class="game-board">
+                <div class="board-wrapper">
+                    <div class="board-container" id="board-container">
+                        <!-- 2D Board Grid -->
+                        <div class="board-grid" id="board-grid">
+                            <!-- Tiles and drop zones render here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Your Hand -->
+                <div class="player-hand">
+                    <div class="hand-header">
+                        <h3>🎴 Your Tiles (<span id="tile-count">0</span>)</h3>
+                        <span class="hand-hint">Drag to board • Right-click to rotate</span>
+                    </div>
+                    <div class="hand-scroll">
+                        <div id="player-tiles"></div>
+                    </div>
+                </div>
+                
+                <!-- Game Controls -->
+                <div class="game-controls">
+                    <button id="draw-btn" class="btn btn-draw" style="display: none;">
+                        📥 Draw Tile
+                    </button>
+                    <button id="pass-btn" class="btn btn-pass" style="display: none;">
+                        ⏭️ Pass Turn
+                    </button>
+                    <button id="leave-btn" class="btn btn-leave">
+                        🚪 Leave Table
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Game Info -->
+            <div class="game-info">
+                <div class="info-box">
+                    <h3>📋 Game Info</h3>
+                    <div id="turn-indicator">Waiting for players...</div>
+                    <div id="boneyard-count">Boneyard: --</div>
+                </div>
+                
+                <div class="info-box">
+                    <h3>🎮 Controls</h3>
+                    <ul class="rules-list">
+                        <li>🖱️ <strong>Drag</strong> to drop zone</li>
+                        <li>🔄 <strong>Right-click</strong> rotate</li>
+                        <li>⌨️ <strong>R</strong> rotate selected</li>
+                    </ul>
+                </div>
+                
+                <div class="info-box">
+                    <h3>📜 Rules</h3>
+                    <ul class="rules-list">
+                        <li>Match numbers on ends</li>
+                        <li>Doubles are spinners</li>
+                        <li>Board grows 4 directions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="drag-preview" class="drag-preview"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
