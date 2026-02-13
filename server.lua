@@ -44,7 +44,40 @@ function ResetAITimer(tableId)
     
 end
 
-
+RSGCore.Functions.CreateCallback('rsg-dominos:server:getTableStatus', function(source, cb, tableId)
+    local game = ActiveGames[tableId]
+    
+    if not game then
+        cb({
+            hasWaitingGame = false,
+            inProgress = false,
+            playerCount = 0,
+            currentBet = 0
+        })
+        return
+    end
+    
+    local humanPlayers = 0
+    local currentBet = 0
+    
+    for _, p in ipairs(game.players) do
+        if p.isHuman then
+            humanPlayers = humanPlayers + 1
+            currentBet = p.bet
+        end
+    end
+    
+    -- Check if it's an AI game (don't allow others to join AI games)
+    local isAIGame = game.withAI
+    
+    cb({
+        hasWaitingGame = humanPlayers > 0 and not game.started and not isAIGame,
+        inProgress = game.started,
+        playerCount = #game.players,
+        currentBet = currentBet,
+        isAIGame = isAIGame
+    })
+end)
 
 function InitializeBoard(game, tile)
     game.board = {}
@@ -327,6 +360,14 @@ RegisterNetEvent('rsg-dominos:server:joinTable', function(tableId, bet, withAI, 
         return
     end
     
+    -- If joining existing game, match existing bet
+    if #game.players > 0 and not game.started then
+        local existingBet = game.players[1].bet
+        if bet ~= existingBet then
+            bet = existingBet -- Force match the existing bet
+        end
+    end
+    
     if #game.players == 0 then
         ResetGame(tableId)
         game = ActiveGames[tableId]
@@ -337,14 +378,29 @@ RegisterNetEvent('rsg-dominos:server:joinTable', function(tableId, bet, withAI, 
         return
     end
     
+    -- Don't allow joining AI games
+    if game.withAI then
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Dominos', description = 'This is an AI game', type = 'error'})
+        return
+    end
+    
     if #game.players >= tableConfig.maxPlayers then
         TriggerClientEvent('ox_lib:notify', src, {title = 'Dominos', description = 'Table full', type = 'error'})
         return
     end
     
+    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
+    
+    -- Notify existing players that someone joined
+    for _, p in ipairs(game.players) do
+        if p.isHuman then
+            TriggerClientEvent('rsg-dominos:client:playerJoined', p.id, playerName, #game.players + 1, tableConfig.maxPlayers)
+        end
+    end
+    
     table.insert(game.players, {
         id = src,
-        name = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname,
+        name = playerName,
         bet = bet,
         tiles = {},
         score = 0,
@@ -397,6 +453,26 @@ RegisterNetEvent('rsg-dominos:server:joinTable', function(tableId, bet, withAI, 
                 StartGame(tableId)
             end
         end)
+    end
+    
+    -- Auto-start when 2+ human players ready (for non-AI games)
+    if not game.withAI and #game.players >= 2 then
+        local allHumansReady = true
+        for _, p in ipairs(game.players) do
+            if p.isHuman and not p.ready then
+                allHumansReady = false
+                break
+            end
+        end
+        
+        if allHumansReady then
+            SetTimeout(2000, function()
+                local g = ActiveGames[tableId]
+                if g and not g.started and #g.players >= 2 then
+                    StartGame(tableId)
+                end
+            end)
+        end
     end
 end)
 
