@@ -1,32 +1,25 @@
-local RSGCore = exports['rsg-core']:GetCoreObject()
 local currentTable = nil
 local inGame = false
 local gameUI = false
 
 
 CreateThread(function()
-    Wait(2000) 
-    
+    Wait(2000)
+
     for _, tableData in pairs(Config.Tables) do
-        
-        
-        
-        
+
         local blip = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, tableData.coords.x, tableData.coords.y, tableData.coords.z)
-        
+
         if blip and blip ~= 0 then
-           
+
             Citizen.InvokeNative(0x74F74D3207ED525C, blip, joaat("blip_mg_dominoes"), true)
-            
-           
+
             Citizen.InvokeNative(0xD38744167B2FA257, blip, 0.2)
-            
+
             local blipName = CreateVarString(10, "LITERAL_STRING", "Dominos Table")
             Citizen.InvokeNative(0x9CB1A1623062F402, blip, blipName)
-            
-           
         else
-            
+
         end
     end
 end)
@@ -35,29 +28,36 @@ end)
 CreateThread(function()
     while true do
         local wait = 1000
-        local playerCoords = GetEntityCoords(PlayerPedId())
-        
+        local playerCoords = GetEntityCoords(cache.ped)
+        local nearTable = false
+
         for _, tableData in pairs(Config.Tables) do
             local distance = #(playerCoords - tableData.coords)
-            
+
             if distance < Config.GameSettings.joinRadius then
                 wait = 0
+                nearTable = true
                 if not currentTable and not inGame then
                     lib.showTextUI('[G] Play Dominos ($' .. tableData.minBet .. ' - $' .. tableData.maxBet .. ')')
-                    
+
                     if IsControlJustReleased(0, 0x760A9C6F) then -- G key
-                        lib.hideTextUI()
                         OpenTableMenu(tableData)
                     end
                 end
+                break
             end
         end
-        
+
+        if not nearTable then
+            lib.hideTextUI()
+        end
+
         Wait(wait)
     end
 end)
 
 function OpenTableMenu(tableData)
+    lib.hideTextUI()
     local menuOptions = {
         {
             type = 'number',
@@ -78,9 +78,9 @@ function OpenTableMenu(tableData)
             required = true
         }
     }
-    
+
     local input = lib.inputDialog('Dominos Table', menuOptions)
-    
+
     if input then
         if input[2] == 'ai' then
             OpenAISetupMenu(tableData, input[1])
@@ -112,9 +112,9 @@ function OpenAISetupMenu(tableData, bet)
             default = 'medium'
         }
     }
-    
+
     local aiInput = lib.inputDialog('AI Game Setup', aiOptions)
-    
+
     if aiInput then
         TriggerServerEvent('rsg-dominos:server:joinTable', tableData.id, bet, true, aiInput[1], aiInput[2])
     end
@@ -123,11 +123,10 @@ end
 RegisterNetEvent('rsg-dominos:client:joinedTable', function(tableId, playerCount)
     currentTable = tableId
     inGame = true
+
     lib.hideTextUI()
     OpenDominosUI()
-    
-    
-    
+
     if playerCount > 1 then
         lib.notify({
             title = 'Dominos',
@@ -141,9 +140,8 @@ RegisterNetEvent('rsg-dominos:client:leftTable', function()
     currentTable = nil
     inGame = false
     CloseDominosUI()
-    ClearPedTasks(PlayerPedId())
-    lib.hideTextUI()
-    
+    ClearPedTasks(cache.ped)
+
     lib.notify({
         title = 'Dominos',
         description = 'You left the table',
@@ -156,7 +154,7 @@ RegisterNetEvent('rsg-dominos:client:startGame', function(gameData)
         action = 'startGame',
         data = gameData
     })
-    
+
     lib.notify({
         title = 'Dominos',
         description = 'Game started! First player: ' .. gameData.currentPlayerName,
@@ -169,7 +167,7 @@ RegisterNetEvent('rsg-dominos:client:updateGame', function(updateData)
         action = 'updateGame',
         data = updateData
     })
-    
+
     if updateData.lastMove and updateData.lastMove.isAI then
         lib.notify({
             title = 'Dominos',
@@ -199,12 +197,12 @@ RegisterNetEvent('rsg-dominos:client:roundEnd', function(data)
         action = 'roundEnd',
         data = data
     })
-    
+
     local winnerText = data.winner
     if data.isAIWinner then
         winnerText = data.winner .. ' (AI)'
     end
-    
+
     lib.notify({
         title = 'Round Over',
         description = winnerText .. ' won the round!',
@@ -213,12 +211,12 @@ RegisterNetEvent('rsg-dominos:client:roundEnd', function(data)
 end)
 
 RegisterNetEvent('rsg-dominos:client:gameEnd', function(data)
-    
+
     SendNUIMessage({
         action = 'gameEnd',
         data = data
     })
-    
+
     local winnerText = data.winner
     if data.isAIWinner then
         lib.notify({
@@ -235,16 +233,15 @@ RegisterNetEvent('rsg-dominos:client:gameEnd', function(data)
             duration = 5000
         })
     end
-    
-    
+
+
     SetTimeout(6000, function()
         if inGame then
             currentTable = nil
             inGame = false
             gameUI = false
             SetNuiFocus(false, false)
-            ClearPedTasks(PlayerPedId())
-            lib.hideTextUI()
+            ClearPedTasks(cache.ped)
         end
     end)
 end)
@@ -264,7 +261,7 @@ function CloseDominosUI()
     SendNUIMessage({
         action = 'closeUI'
     })
-    ClearPedTasks(PlayerPedId())
+    ClearPedTasks(cache.ped)
 end
 
 -- NUI Callbacks

@@ -8,7 +8,7 @@ let gameState = {
     selectedTile: null,
     tileOrientations: {},
     isMyTurn: false,
-    resourceName: 'rsg-dominos',
+    resourceName: 'phils-dominoes',
     playerIndex: null,
     isAITurn: false,
     boneyardCount: 28,

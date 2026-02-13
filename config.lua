@@ -1,21 +1,20 @@
 Config = {}
 
-
 Config.Tables = {
-    
+
     {
         id = 1,
-        coords = vector3(-815.43, -1324.77, 47.88), -- Blackwater upstairs
+        coords = vec3(-815.43, -1324.77, 47.88), -- Blackwater upstairs
         heading = 270.0,
         minBet = 5,
         maxBet = 250,
         maxPlayers = 2,
         allowAI = true
     },
-	
+
 	 {
         id = 2,
-        coords = vector3(-311.84, 800.09, 118.99), -- VALENTINE
+        coords = vec3(-311.84, 800.09, 118.99), -- VALENTINE
         heading = 270.0,
         minBet = 5,
         maxBet = 250,
@@ -23,7 +22,6 @@ Config.Tables = {
         allowAI = true
     }
 }
-
 
 Config.GameSettings = {
     startingTiles = 7,
@@ -51,7 +49,6 @@ Config.AI = {
         }
     }
 }
-
 
 Config.AINames = {
     "phil mcracken",
